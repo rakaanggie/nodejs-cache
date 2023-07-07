@@ -1,17 +1,11 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const { createCluster } = require('redis');
+const redis = require('redis');
 
 const PORT = process.env.PORT || 5000;
-//const REDIS_PORT = process.env.REDIS_PORT || 6379;
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
-const client = createCluster({
-    rootNodes: [
-        {
-            url: process.env.REDIS_HOST
-        }
-    ]
-});
+const client = redis.createClient(REDIS_PORT);
 const app = express();
 
 //set setRseponse
@@ -28,7 +22,7 @@ async function getRepos (req, res, next) {
         const data = await response.json();
         const repos = data.public_repos;
         //Set data to redis
-        client.setEx(username, 3600, repos);
+        client.set(username, repos, "EX", 3600);
         res.send(setResponse(username, repos));
     } catch (err) {
         console.error(err);
@@ -49,7 +43,7 @@ function cache(req, res, next) {
     }) 
 }
 
-app.get ("/repos/:username" , getRepos);
+app.get ("/repos/:username", cache, getRepos);
 
 app.listen(PORT, () => {
     console.log(`Application listening on port ${PORT}`);
