@@ -1,11 +1,31 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const redis = require('redis');
+require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
-const REDIS_HOST = process.env.REDIS_HOST || 6379;
+//const REDIS_HOST = process.env.REDIS_HOST || 6379;
 
-const client = redis.createClient(REDIS_HOST);
+const client = redis.createClient({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+});
+
+/*
+const client = redis.createClient({
+    rootNodes: [
+        {
+            url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+        }
+    ]
+});
+*/
+
+if (client) {
+    console.log("connected to redis");
+} else {
+    console.log("disconnected")
+}
 const app = express();
 
 //set setRseponse
